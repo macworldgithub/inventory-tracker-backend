@@ -7,6 +7,9 @@ import { ActionItem, ActionItemDocument } from '../../database/schemas/action.sc
 import { FeedLog, FeedLogDocument } from '../../database/schemas/feed-log.schema';
 import { ReconciliationService } from '../ingest/reconciliation.service';
 
+// DMS statuses that mean a vehicle has left the lot (exclude from active inventory)
+const EXITED_STATUSES = ['SOLD', 'DLR TRADE'];
+
 @Injectable()
 export class InventoryService {
   constructor(
@@ -25,7 +28,7 @@ export class InventoryService {
     const latestFeed = await this.feedLogModel.findOne().sort({ createdAt: -1 }).lean() as any;
     return {
       lastFeedTimestamp: latestFeed?.createdAt || new Date(),
-      lastFeedType: latestFeed?.feedType || 'PENTANA_0600',
+      lastFeedType: latestFeed?.feedType || 'CSV_INITIAL_LOAD',
       scheduledWindow: latestFeed?.scheduledWindow || '06:00 - 06:45 AEST',
       nextScheduledFeed: '14:00 - 14:45 AEST',
       status: latestFeed?.status || 'SUCCESS',
@@ -36,7 +39,7 @@ export class InventoryService {
   }
 
   async triggerFeedReconciliation() {
-    const { pentanaRecords, websiteRecords } = this.reconciliationService.generateRealisticFeedData();
+    const { pentanaRecords, websiteRecords } = this.reconciliationService.parseAllCsvFiles();
     const result = await this.reconciliationService.processFeeds(
       pentanaRecords, 
       websiteRecords, 
@@ -50,7 +53,7 @@ export class InventoryService {
   // 1. GROUP OWNERSHIP VIEW
   // ==========================================
   async getGroupOverview() {
-    const vehicles = await this.vehicleModel.find({ status: { $ne: 'Sold' } }).lean();
+    const vehicles = await this.vehicleModel.find({ status: { $nin: EXITED_STATUSES } }).lean();
     const rooftops = await this.rooftopModel.find().lean();
     const actions = await this.actionItemModel.find({ status: 'open' }).limit(10).lean();
 
@@ -107,11 +110,12 @@ export class InventoryService {
       };
     });
 
-    // Category mix
+    // Category mix (including Loaner)
     const categoryMix = {
       New: vehicles.filter(v => v.category === 'New').length,
       Used: vehicles.filter(v => v.category === 'Used').length,
       Demo: vehicles.filter(v => v.category === 'Demo').length,
+      Loaner: vehicles.filter(v => v.category === 'Loaner').length,
     };
 
     // Brand mix
@@ -119,6 +123,12 @@ export class InventoryService {
       acc[v.make] = (acc[v.make] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
+
+    // Calculate real deltas from data
+    const soldCount = await this.vehicleModel.countDocuments({ status: 'SOLD' });
+    const dealPendCount = vehicles.filter(v => v.status === 'DEAL PEND').length;
+    const onOrderCount = vehicles.filter(v => v.status === 'ON-ORDER').length;
+    const inTransitCount = vehicles.filter(v => v.status === 'IN-TRANSIT').length;
 
     return {
       kpiStrip: {
@@ -134,11 +144,11 @@ export class InventoryService {
         aged90Cost,
         holdingCostToday: Math.round(totalStockCost * 0.0003),
         deltas: {
-          stockIn: 4,
-          retailExits: 3,
-          wholesaleExits: 1,
-          transfers: 2,
-          priceAdjustments: 5,
+          stockIn: inTransitCount + onOrderCount,
+          retailExits: soldCount,
+          wholesaleExits: vehicles.filter(v => v.status === 'WHOLESALE').length,
+          transfers: 0,
+          priceAdjustments: dealPendCount,
         }
       },
       rooftopStats,
@@ -157,7 +167,7 @@ export class InventoryService {
 
     const vehicles = await this.vehicleModel.find({ 
       rooftopId: { $in: rooftopIds },
-      status: { $ne: 'Sold' }
+      status: { $nin: EXITED_STATUSES }
     }).lean();
 
     const clusterActions = await this.actionItemModel.find({
@@ -170,9 +180,9 @@ export class InventoryService {
       .sort((a, b) => (b.daysInStock * b.totalStockCost) - (a.daysInStock * a.totalStockCost))
       .slice(0, 15)
       .map(v => ({
-        vin: v.vin,
+        vin: v.vin || v.stockNumber,
         stockNumber: v.stockNumber,
-        title: `${v.year} ${v.make} ${v.model} ${v.variant}`,
+        title: `${v.year} ${v.make} ${v.model}`,
         rooftopName: v.rooftopName,
         category: v.category,
         totalStockCost: v.totalStockCost,
@@ -191,7 +201,7 @@ export class InventoryService {
       const lotVehicles = vehicles.filter(v => v.rooftopId === r.rooftopId);
       const lotCost = lotVehicles.reduce((sum, v) => sum + (v.totalStockCost || 0), 0);
       const aged45Count = lotVehicles.filter(v => v.daysInStock >= 45).length;
-      const reconCount = lotVehicles.filter(v => v.status === 'In Recon').length;
+      const reconCount = lotVehicles.filter(v => ['IN SERVICE', 'RECO'].includes(v.status)).length;
       const avgDis = lotVehicles.length > 0 
         ? Math.round(lotVehicles.reduce((sum, v) => sum + v.daysInStock, 0) / lotVehicles.length) 
         : 0;
@@ -227,9 +237,9 @@ export class InventoryService {
       kpiStrip: {
         totalUnits: vehicles.length,
         totalCost: vehicles.reduce((s, v) => s + v.totalStockCost, 0),
-        availableUnits: vehicles.filter(v => v.status === 'Available').length,
-        reservedUnits: vehicles.filter(v => v.status === 'Reserved').length,
-        demoUnits: vehicles.filter(v => v.status === 'Demo').length,
+        availableUnits: vehicles.filter(v => v.status === 'IN-STOCK').length,
+        reservedUnits: vehicles.filter(v => v.status === 'DEAL PEND').length,
+        demoUnits: vehicles.filter(v => ['DEMO', 'LOANER', 'DRIVE CARS'].includes(v.status)).length,
         avgDis: vehicles.length > 0 ? Math.round(vehicles.reduce((s, v) => s + v.daysInStock, 0) / vehicles.length) : 0,
         potentialGross: vehicles.reduce((s, v) => s + v.potentialGross, 0),
         aged45Count: vehicles.filter(v => v.daysInStock >= 45).length,
@@ -244,7 +254,7 @@ export class InventoryService {
   // ==========================================
   // 3. GENERAL MANAGER VIEW (Single Rooftop)
   // ==========================================
-  async getGeneralManagerRooftop(rooftopId: string = 'booran-hyundai-dandenong') {
+  async getGeneralManagerRooftop(rooftopId: string = 'booran-hyundai-berwick') {
     const rooftop = await this.rooftopModel.findOne({ rooftopId }).lean();
     if (!rooftop) {
       throw new NotFoundException(`Rooftop ${rooftopId} not found`);
@@ -252,33 +262,50 @@ export class InventoryService {
 
     const vehicles = await this.vehicleModel.find({ 
       rooftopId,
-      status: { $ne: 'Sold' }
+      status: { $nin: EXITED_STATUSES }
     }).lean();
 
-    // Pipeline breakdown
+    // Pipeline breakdown using real DMS statuses
     const pipeline = {
-      incoming: 4, // Simulated in transit / delivery
-      inRecon: vehicles.filter(v => v.status === 'In Recon').length,
+      incoming: vehicles.filter(v => ['IN-TRANSIT', 'ON-ORDER'].includes(v.status)).length,
+      inRecon: vehicles.filter(v => ['IN SERVICE', 'RECO'].includes(v.status)).length,
       frontlineReady: vehicles.filter(v => v.frontlineReady).length,
-      reserved: vehicles.filter(v => v.status === 'Reserved').length,
-      soldThisWeek: 7,
-      demo: vehicles.filter(v => v.status === 'Demo').length,
-      wholesale: vehicles.filter(v => v.status === 'Wholesale').length,
+      reserved: vehicles.filter(v => v.status === 'DEAL PEND').length,
+      soldThisWeek: await this.vehicleModel.countDocuments({ rooftopId, status: 'SOLD' }),
+      demo: vehicles.filter(v => ['DEMO', 'LOANER', 'DRIVE CARS'].includes(v.status)).length,
+      wholesale: vehicles.filter(v => v.status === 'WHOLESALE').length,
     };
 
     // Merchandising Exception Rail
     const missingPhotos = vehicles.filter(v => !v.heroPhoto || v.photos.length === 0);
     const missingAdvertisedPrice = vehicles.filter(v => v.advertisedPrice === null || v.advertisedPrice <= 0);
     const aged90Units = vehicles.filter(v => v.daysInStock >= 90);
-    const reconBreaches = vehicles.filter(v => v.status === 'In Recon' && v.recommendedAction === 'COMPLETE');
+    const reconBreaches = vehicles.filter(v => ['IN SERVICE', 'RECO'].includes(v.status) && v.recommendedAction === 'COMPLETE');
 
-    // Movement Ticker (Today's feed delta)
-    const movementToday = [
-      { type: 'STOCK_IN', title: '2026 Hyundai Tucson Highlander', stockNumber: 'BH1042', time: '06:14 AEST', details: 'Added to inventory - awaiting recon' },
-      { type: 'SOLD', title: '2024 Hyundai Santa Fe Hybrid', stockNumber: 'BH0988', time: '09:30 AEST', details: 'Exit to retail delivery' },
-      { type: 'TRANSFER_OUT', title: '2023 Hyundai i30 N-Line', stockNumber: 'BH0912', time: '11:15 AEST', details: 'Transferred to Booran Cranbourne' },
-      { type: 'PRICE_REDUCTION', title: '2022 Hyundai Kona Electric', stockNumber: 'BH0865', time: '13:00 AEST', details: 'Reduced from $42,990 to $39,990' },
-    ];
+    // Movement Ticker - build from real data
+    const recentDealPending = vehicles
+      .filter(v => v.status === 'DEAL PEND' && v.dealNumber)
+      .slice(0, 2)
+      .map(v => ({
+        type: 'DEAL_PEND',
+        title: `${v.year} ${v.make} ${v.model}`,
+        stockNumber: v.stockNumber,
+        time: 'Today',
+        details: `Deal ${v.dealNumber} pending settlement`,
+      }));
+
+    const recentInTransit = vehicles
+      .filter(v => v.status === 'IN-TRANSIT')
+      .slice(0, 2)
+      .map(v => ({
+        type: 'STOCK_IN',
+        title: `${v.year} ${v.make} ${v.model}`,
+        stockNumber: v.stockNumber,
+        time: 'In Transit',
+        details: 'Vehicle in transit to dealership',
+      }));
+
+    const movementToday = [...recentDealPending, ...recentInTransit];
 
     return {
       rooftop,
@@ -301,7 +328,7 @@ export class InventoryService {
         aged90: aged90Units.slice(0, 5),
         reconBreachesCount: reconBreaches.length,
       },
-      inventoryList: vehicles.slice(0, 20),
+      inventoryList: vehicles.slice(0, 30),
     };
   }
 
@@ -321,7 +348,7 @@ export class InventoryService {
     page?: number;
     limit?: number;
   }) {
-    const filter: any = { status: { $ne: 'Sold' } };
+    const filter: any = { status: { $nin: EXITED_STATUSES } };
 
     if (query.rooftopId && query.rooftopId !== 'all') {
       filter.rooftopId = query.rooftopId;
@@ -343,10 +370,11 @@ export class InventoryService {
     }
     if (query.search) {
       filter.$or = [
-        { vin: { $regex: query.search, $options: 'i' } },
         { stockNumber: { $regex: query.search, $options: 'i' } },
         { model: { $regex: query.search, $options: 'i' } },
         { rego: { $regex: query.search, $options: 'i' } },
+        { colour: { $regex: query.search, $options: 'i' } },
+        { description: { $regex: query.search, $options: 'i' } },
       ];
     }
 
@@ -366,10 +394,10 @@ export class InventoryService {
       .lean();
 
     // Summary counters
-    const totalVehicles = await this.vehicleModel.countDocuments({ status: { $ne: 'Sold' } });
-    const priceReviewCount = await this.vehicleModel.countDocuments({ isPriceReviewRequired: true, status: { $ne: 'Sold' } });
-    const missingPhotosCount = await this.vehicleModel.countDocuments({ heroPhoto: '', status: { $ne: 'Sold' } });
-    const wholesaleQueueCount = await this.vehicleModel.countDocuments({ recommendedAction: 'WHOLESALE', status: { $ne: 'Sold' } });
+    const totalVehicles = await this.vehicleModel.countDocuments({ status: { $nin: EXITED_STATUSES } });
+    const priceReviewCount = await this.vehicleModel.countDocuments({ isPriceReviewRequired: true, status: { $nin: EXITED_STATUSES } });
+    const missingPhotosCount = await this.vehicleModel.countDocuments({ heroPhoto: '', status: { $nin: EXITED_STATUSES } });
+    const wholesaleQueueCount = await this.vehicleModel.countDocuments({ recommendedAction: 'WHOLESALE', status: { $nin: EXITED_STATUSES } });
 
     return {
       vehicles,
@@ -388,19 +416,22 @@ export class InventoryService {
     };
   }
 
-  // Single unit drawer
-  async getUnitDetails(vin: string) {
-    const vehicle = await this.vehicleModel.findOne({ vin }).lean();
+  // Single unit drawer - now uses stockNumber as primary lookup
+  async getUnitDetails(identifier: string) {
+    // Try stockNumber first, then fallback to vin
+    let vehicle = await this.vehicleModel.findOne({ stockNumber: identifier }).lean();
     if (!vehicle) {
-      throw new NotFoundException(`Vehicle with VIN ${vin} not found`);
+      vehicle = await this.vehicleModel.findOne({ vin: identifier }).lean();
+    }
+    if (!vehicle) {
+      throw new NotFoundException(`Vehicle with identifier ${identifier} not found`);
     }
 
-    // Sister units across other Booran rooftops
+    // Sister units across other Booran rooftops (same model)
     const sisterUnits = await this.vehicleModel.find({
-      make: vehicle.make,
       model: vehicle.model,
-      vin: { $ne: vehicle.vin },
-      status: { $ne: 'Sold' }
+      stockNumber: { $ne: vehicle.stockNumber },
+      status: { $nin: EXITED_STATUSES }
     }).limit(4).lean();
 
     return {

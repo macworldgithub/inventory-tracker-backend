@@ -5,7 +5,7 @@ export interface SeedRooftop {
   franchise: string;
   clusterId: string;
   clusterName: string;
-  pentanaBranchCodes: string[];
+  pentanaBranchCodes: string[]; // Pentana 'loc' codes from the CSV
   generalManager: string;
   dealerPrincipal: string;
   dailyHoldingCostRate: number;
@@ -15,18 +15,18 @@ export interface SeedRooftop {
 
 export const SEED_ROOFTOPS: SeedRooftop[] = [
   {
-    rooftopId: 'booran-hyundai-dandenong',
-    name: 'Booran Hyundai Dandenong',
-    location: 'Dandenong, VIC',
+    rooftopId: 'booran-hyundai-berwick',
+    name: 'Booran Hyundai Berwick',
+    location: 'Berwick, VIC',
     franchise: 'Hyundai',
     clusterId: 'cluster-hyundai-metro',
     clusterName: 'Booran Hyundai Metro Cluster',
-    pentanaBranchCodes: ['DAN-HYU-01', 'DAN-HYU-USED'],
-    generalManager: 'Marcus Vance',
+    pentanaBranchCodes: ['BWHY'],
+    generalManager: 'Liam O\'Connor',
     dealerPrincipal: 'David Booran',
     dailyHoldingCostRate: 0.0003,
     pentanaSourceSystem: 'eraPower',
-    websiteUrl: 'https://www.booranhyundaidandenong.com.au'
+    websiteUrl: 'https://www.booranhyundaiberwick.com.au'
   },
   {
     rooftopId: 'booran-hyundai-cranbourne',
@@ -35,26 +35,12 @@ export const SEED_ROOFTOPS: SeedRooftop[] = [
     franchise: 'Hyundai',
     clusterId: 'cluster-hyundai-metro',
     clusterName: 'Booran Hyundai Metro Cluster',
-    pentanaBranchCodes: ['CRN-HYU-01', 'CRN-HYU-USED'],
+    pentanaBranchCodes: ['CRAN', 'CRANHOL', 'CYCRANHOL'],
     generalManager: 'Sarah Jenkins',
     dealerPrincipal: 'David Booran',
     dailyHoldingCostRate: 0.0003,
     pentanaSourceSystem: 'eraPower',
     websiteUrl: 'https://www.booranhyundaicranbourne.com.au'
-  },
-  {
-    rooftopId: 'booran-hyundai-berwick',
-    name: 'Booran Hyundai Berwick',
-    location: 'Berwick, VIC',
-    franchise: 'Hyundai',
-    clusterId: 'cluster-hyundai-metro',
-    clusterName: 'Booran Hyundai Metro Cluster',
-    pentanaBranchCodes: ['BER-HYU-01', 'BER-HYU-USED'],
-    generalManager: 'Liam O’Connor',
-    dealerPrincipal: 'David Booran',
-    dailyHoldingCostRate: 0.0003,
-    pentanaSourceSystem: 'eraPower',
-    websiteUrl: 'https://www.booranhyundaiberwick.com.au'
   },
   {
     rooftopId: 'booran-hyundai-south-morang',
@@ -63,7 +49,7 @@ export const SEED_ROOFTOPS: SeedRooftop[] = [
     franchise: 'Hyundai',
     clusterId: 'cluster-hyundai-metro',
     clusterName: 'Booran Hyundai Metro Cluster',
-    pentanaBranchCodes: ['SMR-HYU-01'],
+    pentanaBranchCodes: ['MILLPK'],
     generalManager: 'Nathan Cole',
     dealerPrincipal: 'David Booran',
     dailyHoldingCostRate: 0.0003,
@@ -77,84 +63,86 @@ export const SEED_ROOFTOPS: SeedRooftop[] = [
     franchise: 'Kia',
     clusterId: 'cluster-bayside-kia',
     clusterName: 'Booran Bayside Kia Cluster',
-    pentanaBranchCodes: ['CHL-KIA-01', 'CHL-KIA-USED'],
+    pentanaBranchCodes: ['CHELT', 'CHELTH', 'KYARD', 'YYARD'],
     generalManager: 'Brett Harrison',
     dealerPrincipal: 'Paul Booran',
     dailyHoldingCostRate: 0.00032,
     pentanaSourceSystem: 'eraPower',
     websiteUrl: 'https://www.boorankiacheltenham.com.au'
   },
-  {
-    rooftopId: 'booran-kia-cranbourne',
-    name: 'Booran Kia Cranbourne',
-    location: 'Cranbourne, VIC',
-    franchise: 'Kia',
-    clusterId: 'cluster-bayside-kia',
-    clusterName: 'Booran Bayside Kia Cluster',
-    pentanaBranchCodes: ['CRN-KIA-01'],
-    generalManager: 'Gemma Watson',
-    dealerPrincipal: 'Paul Booran',
-    dailyHoldingCostRate: 0.00032,
-    pentanaSourceSystem: 'eraPower',
-    websiteUrl: 'https://www.boorankiacranbourne.com.au'
-  },
-  {
-    rooftopId: 'booran-mg-dandenong',
-    name: 'Booran MG Dandenong',
-    location: 'Dandenong, VIC',
-    franchise: 'MG',
-    clusterId: 'cluster-growth-brands',
-    clusterName: 'Booran Emerging Franchises Cluster',
-    pentanaBranchCodes: ['DAN-MG-01'],
-    generalManager: 'Jason Chen',
-    dealerPrincipal: 'Mark Stevens',
-    dailyHoldingCostRate: 0.00028,
-    pentanaSourceSystem: 'eraPower',
-    websiteUrl: 'https://www.booranmgdandenong.com.au'
-  },
-  {
-    rooftopId: 'booran-chery-dandenong',
-    name: 'Booran Chery Dandenong',
-    location: 'Dandenong, VIC',
-    franchise: 'Chery',
-    clusterId: 'cluster-growth-brands',
-    clusterName: 'Booran Emerging Franchises Cluster',
-    pentanaBranchCodes: ['DAN-CHY-01'],
-    generalManager: 'Chloe Taylor',
-    dealerPrincipal: 'Mark Stevens',
-    dailyHoldingCostRate: 0.00028,
-    pentanaSourceSystem: 'EraNet',
-    websiteUrl: 'https://www.boorancherydandenong.com.au'
-  }
 ];
 
-export interface RawPentanaRecord {
-  vin: string;
+// Location codes that indicate the vehicle is in transit / on order (not physically at the dealership)
+export const IN_TRANSIT_LOC_CODES = ['HYDB', 'HYDC', 'DUE', 'TRANSIT'];
+
+// ============ CSV Record Interfaces ============
+
+/**
+ * Raw record parsed from a NEW vehicle Pentana CSV.
+ * Header: stock#, carline, description, fa, colour, loc, dest loc, list price, age, age, deal, status, open ro/po
+ */
+export interface RawNewVehicleCsvRecord {
+  stockNumber: string;       // stock#
+  carline: string;           // e.g. "TUCSON HEV"
+  description: string;       // Full model description e.g. "NX4.V4 TUCSON ELITE 1.6T HEV AWD"
+  fa: string;                // Fleet/Auction flag (usually empty)
+  colour: string;            // e.g. "ECOTRONIC GREY"
+  loc: string;               // Location code e.g. "BWHY", "CRAN", "CHELT", "MILLPK"
+  destLoc: string;           // Destination location (usually empty)
+  listPrice: number;         // Cost ex-GST
+  ageField1: string;         // First age column (usually empty)
+  ageField2: number;         // Second age column = Days in Stock
+  deal: string;              // Deal number if sold / deal pending
+  status: string;            // IN-STOCK, DEMO, DEAL PEND, DLR TRADE, IN-TRANSIT, ON-ORDER, LOANER, SOLD
+  openRoPo: string;          // Y/N - Open Repair Order / Purchase Order
+}
+
+/**
+ * Raw record parsed from a USED vehicle Pentana CSV.
+ * Header: stock no, age, year, carline, description, reg no, odometer, colour, list price, loc, dest loc, status, open ro/po
+ */
+export interface RawUsedVehicleCsvRecord {
+  stockNumber: string;       // stock no
+  age: number;               // Days in Stock
+  year: number;              // Model year (2-digit or 4-digit)
+  carline: string;           // e.g. "TUCSON"
+  description: string;       // Full model description
+  rego: string;              // Registration number
+  odometer: number;          // Odometer reading
+  colour: string;            // e.g. "WHITE/BLACK"
+  listPrice: number;         // Advertised / list price
+  loc: string;               // Location code
+  destLoc: string;           // Destination location
+  status: string;            // IN-STOCK, DEAL PEND, LOANER, WHOLESALE, IN SERVICE, RECO, DRIVE CARS
+  openRoPo: string;          // Y/N
+}
+
+/**
+ * Unified normalized record that both New and Used CSV parsers produce.
+ * This is what the reconciliation service consumes.
+ */
+export interface NormalizedPentanaRecord {
   stockNumber: string;
-  branchCode: string;
-  year: number;
-  make: string;
-  model: string;
-  variant: string;
-  body: string;
+  carline: string;
+  description: string;
   colour: string;
-  fuel: string;
-  transmission: string;
-  odometer: number;
-  category: 'New' | 'Used' | 'Demo';
-  vehicleCost: number;
-  postedRecon: number;
-  extras: number;
-  floorplanExposure: number;
-  status: 'Available' | 'Reserved' | 'In Recon' | 'Wholesale' | 'Sold' | 'Demo';
-  dateInStock: string;
-  expectedReadyDate?: string;
-  salesperson?: string;
+  loc: string;
+  destLoc: string;
+  listPrice: number;
+  daysInStock: number;
+  deal: string;
+  status: string;
+  openRoPo: boolean;
+  // Used-car specific fields
+  year?: number;
   rego?: string;
+  odometer?: number;
+  // Derived
+  category: 'New' | 'Used' | 'Demo' | 'Loaner';
+  make: string; // Inferred from the rooftop franchise
 }
 
 export interface RawWebsiteRecord {
-  vin: string;
   stockNumber: string;
   advertisedPrice: number | null;
   heroPhoto: string;
@@ -164,29 +152,13 @@ export interface RawWebsiteRecord {
   listingDescription: string;
 }
 
-export const SAMPLE_VEHICLE_MODELS = [
-  { make: 'Hyundai', model: 'Tucson', body: 'SUV', fuel: 'Petrol', defaultPrice: 44990 },
-  { make: 'Hyundai', model: 'Santa Fe', body: 'SUV', fuel: 'Hybrid', defaultPrice: 62990 },
-  { make: 'Hyundai', model: 'i30', body: 'Hatchback', fuel: 'Petrol', defaultPrice: 31990 },
-  { make: 'Hyundai', model: 'Kona', body: 'SUV', fuel: 'Electric', defaultPrice: 53990 },
-  { make: 'Hyundai', model: 'Ioniq 5', body: 'SUV', fuel: 'Electric', defaultPrice: 71990 },
-  { make: 'Kia', model: 'Sportage', body: 'SUV', fuel: 'Diesel', defaultPrice: 47990 },
-  { make: 'Kia', model: 'Seltos', body: 'SUV', fuel: 'Petrol', defaultPrice: 34990 },
-  { make: 'Kia', model: 'Carnival', body: 'People Mover', fuel: 'Diesel', defaultPrice: 68990 },
-  { make: 'Kia', model: 'EV6', body: 'SUV', fuel: 'Electric', defaultPrice: 76990 },
-  { make: 'MG', model: 'MG4', body: 'Hatchback', fuel: 'Electric', defaultPrice: 39990 },
-  { make: 'MG', model: 'ZS EV', body: 'SUV', fuel: 'Electric', defaultPrice: 38990 },
-  { make: 'Chery', model: 'Omoda 5', body: 'SUV', fuel: 'Petrol', defaultPrice: 32990 },
-  { make: 'Chery', model: 'Tiggo 7 Pro', body: 'SUV', fuel: 'Petrol', defaultPrice: 39990 }
-];
-
-export const SAMPLE_PHOTOS = [
-  'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=800&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&auto=format&fit=crop&q=80'
-];
+// export const SAMPLE_PHOTOS = [
+//   'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80',
+//   'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80',
+//   'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80',
+//   'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800&auto=format&fit=crop&q=80',
+//   'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800&auto=format&fit=crop&q=80',
+//   'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&auto=format&fit=crop&q=80',
+//   'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=800&auto=format&fit=crop&q=80',
+//   'https://images.unsplash.com/photo-1553440569-bcc63803a83d?w=800&auto=format&fit=crop&q=80'
+// ];

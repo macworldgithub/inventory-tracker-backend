@@ -6,13 +6,38 @@ import { Vehicle, VehicleDocument } from '../../database/schemas/vehicle.schema'
 import { ActionItem, ActionItemDocument } from '../../database/schemas/action.schema';
 import { FeedLog, FeedLogDocument } from '../../database/schemas/feed-log.schema';
 import { RulesService } from '../rules/rules.service';
-import { 
-  SEED_ROOFTOPS, 
-  SAMPLE_VEHICLE_MODELS, 
-  SAMPLE_PHOTOS, 
-  RawPentanaRecord, 
-  RawWebsiteRecord 
+import * as fs from 'fs';
+import * as path from 'path';
+import {
+  SEED_ROOFTOPS,
+  // SAMPLE_PHOTOS,
+  NormalizedPentanaRecord,
+  RawWebsiteRecord,
+  IN_TRANSIT_LOC_CODES,
 } from '../../data/seed-data';
+
+// CSV file manifest: maps each file to its rooftop, type, and franchise
+interface CsvFileMapping {
+  filename: string;
+  rooftopId: string;
+  type: 'new' | 'used';
+  franchise: string;
+}
+
+const CSV_FILE_MANIFEST: CsvFileMapping[] = [
+  // Berwick Hyundai
+  { filename: 'booran_berwick_new_hyundai.csv', rooftopId: 'booran-hyundai-berwick', type: 'new', franchise: 'Hyundai' },
+  { filename: 'booran_berwick_used_hyundai.csv', rooftopId: 'booran-hyundai-berwick', type: 'used', franchise: 'Hyundai' },
+  // Cranbourne Hyundai
+  { filename: 'booran_caranbourne_hyundai_new.csv', rooftopId: 'booran-hyundai-cranbourne', type: 'new', franchise: 'Hyundai' },
+  { filename: 'booran_carabourne_hyundai_used.csv', rooftopId: 'booran-hyundai-cranbourne', type: 'used', franchise: 'Hyundai' },
+  // South Morang Hyundai
+  { filename: 'booran_southmoran_new_hyundai.csv', rooftopId: 'booran-hyundai-south-morang', type: 'new', franchise: 'Hyundai' },
+  { filename: 'booran_southmoran_used_hyundai.csv', rooftopId: 'booran-hyundai-south-morang', type: 'used', franchise: 'Hyundai' },
+  // Cheltenham Kia
+  { filename: 'booran_chatelnham_new_kia.csv', rooftopId: 'booran-kia-cheltenham', type: 'new', franchise: 'Kia' },
+  { filename: 'booran_chatlnham_used_kia.csv', rooftopId: 'booran-kia-cheltenham', type: 'used', franchise: 'Kia' },
+];
 
 @Injectable()
 export class ReconciliationService {
@@ -24,13 +49,13 @@ export class ReconciliationService {
     @InjectModel(ActionItem.name) private actionItemModel: Model<ActionItemDocument>,
     @InjectModel(FeedLog.name) private feedLogModel: Model<FeedLogDocument>,
     private rulesService: RulesService,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     // Seed initial rooftops and data if database is empty
     const rooftopCount = await this.rooftopModel.countDocuments();
     if (rooftopCount === 0) {
-      this.logger.log('Database empty. Initialising Booran Motor Group rooftops and inventory...');
+      this.logger.log('Database empty. Initialising Booran Motor Group rooftops and ingesting CSV data...');
       await this.seedInitialDatabase();
     }
   }
@@ -40,114 +65,183 @@ export class ReconciliationService {
     await this.rooftopModel.insertMany(SEED_ROOFTOPS);
     this.logger.log(`Seeded ${SEED_ROOFTOPS.length} Booran rooftops`);
 
-    // 2. Generate simulated Pentana records and Website records
-    const { pentanaRecords, websiteRecords } = this.generateRealisticFeedData();
+    // 2. Parse CSV files into normalized records
+    const { pentanaRecords, websiteRecords } = this.parseAllCsvFiles();
+    this.logger.log(`Parsed ${pentanaRecords.length} Pentana records from ${CSV_FILE_MANIFEST.length} CSV files`);
 
     // 3. Reconcile and save
-    await this.processFeeds(pentanaRecords, websiteRecords, 'PENTANA_0600', '06:00 - 06:45 AEST');
+    await this.processFeeds(pentanaRecords, websiteRecords, 'CSV_INITIAL_LOAD', 'Initial CSV Import');
   }
 
-  generateRealisticFeedData(): { pentanaRecords: RawPentanaRecord[]; websiteRecords: RawWebsiteRecord[] } {
-    const pentanaRecords: RawPentanaRecord[] = [];
-    const websiteRecords: RawWebsiteRecord[] = [];
+  // ============ CSV PARSING ============
 
-    let vinCounter = 1000;
-    const now = new Date();
+  /**
+   * Parse a single CSV line, handling quoted fields with commas inside.
+   */
+  private parseCsvLine(line: string): string[] {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
 
-    // Generate ~60-70 realistic vehicles across rooftops
-    for (const rooftop of SEED_ROOFTOPS) {
-      // Pick matching models for the franchise
-      const franchiseModels = SAMPLE_VEHICLE_MODELS.filter(m => m.make === rooftop.franchise);
-      const vehiclePool = franchiseModels.length > 0 ? franchiseModels : SAMPLE_VEHICLE_MODELS;
-
-      // 7 to 10 vehicles per rooftop
-      const count = rooftop.rooftopId.includes('dandenong') ? 11 : 7;
-
-      for (let i = 0; i < count; i++) {
-        vinCounter++;
-        const modelDef = vehiclePool[i % vehiclePool.length];
-        const vin = `6T1AA10V${vinCounter}BMG${rooftop.franchise.substring(0, 2).toUpperCase()}`;
-        const stockNumber = `B${rooftop.franchise.substring(0, 1)}${vinCounter.toString().slice(-4)}`;
-
-        // Vary DIS to populate all 5 aging buckets: 0-30, 31-45, 46-60, 61-90, 90+
-        const disProfiles = [8, 16, 28, 38, 49, 58, 72, 88, 104, 118];
-        const dis = disProfiles[(vinCounter + i) % disProfiles.length];
-
-        const dateInStock = new Date(now.getTime() - dis * 24 * 60 * 60 * 1000);
-
-        // Category
-        const category: 'New' | 'Used' | 'Demo' = i % 4 === 0 ? 'New' : i % 7 === 0 ? 'Demo' : 'Used';
-
-        // Base vehicle cost
-        const varianceFactor = 0.78 + ((vinCounter % 15) * 0.01);
-        const vehicleCost = Math.round(modelDef.defaultPrice * varianceFactor);
-        const postedRecon = category === 'Used' ? (i % 3 === 0 ? 1650 : 950) : 0;
-        const extras = i % 2 === 0 ? 450 : 0;
-        const totalStockCost = vehicleCost + postedRecon + extras;
-
-        // Status
-        let status: 'Available' | 'Reserved' | 'In Recon' | 'Wholesale' | 'Sold' | 'Demo' = 'Available';
-        if (dis > 90 && category === 'Used' && i % 3 === 0) status = 'Wholesale';
-        else if (dis <= 5 && i % 2 === 0) status = 'In Recon';
-        else if (i % 8 === 0) status = 'Reserved';
-        else if (category === 'Demo') status = 'Demo';
-
-        const expectedReadyDate = status === 'In Recon' 
-          ? (i % 2 === 0 ? new Date(now.getTime() - 2 * 86400000) : new Date(now.getTime() + 3 * 86400000)).toISOString()
-          : undefined;
-
-        pentanaRecords.push({
-          vin,
-          stockNumber,
-          branchCode: rooftop.pentanaBranchCodes[0],
-          year: category === 'New' ? 2026 : category === 'Demo' ? 2025 : 2021 + (i % 4),
-          make: modelDef.make,
-          model: modelDef.model,
-          variant: 'Elite Auto AWD',
-          body: modelDef.body,
-          colour: ['Polar White', 'Phantom Black', 'Titan Grey', 'Intense Blue', 'Fiery Red'][i % 5],
-          fuel: modelDef.fuel,
-          transmission: 'Automatic',
-          odometer: category === 'New' ? 12 : category === 'Demo' ? 3400 : 28000 + (i * 7400),
-          category,
-          vehicleCost,
-          postedRecon,
-          extras,
-          floorplanExposure: Math.round(vehicleCost * 0.95),
-          status,
-          dateInStock: dateInStock.toISOString(),
-          expectedReadyDate,
-          salesperson: ['John Miller', 'Sophie Zhang', 'Luke Edwards', 'Mark Davies'][i % 4],
-          rego: category !== 'New' ? `1BM${i}XY` : undefined,
-        });
-
-        // Website record (some missing photos or price to test exceptions)
-        const hasMissingPhotos = (vinCounter % 9 === 0);
-        const hasMissingPrice = (vinCounter % 13 === 0);
-        const photoUrl = SAMPLE_PHOTOS[(vinCounter + i) % SAMPLE_PHOTOS.length];
-
-        const advertisedPrice = hasMissingPrice 
-          ? null 
-          : (modelDef.defaultPrice + (category === 'Used' ? -5000 : 0) + (i % 2 === 0 ? 990 : -490));
-
-        websiteRecords.push({
-          vin,
-          stockNumber,
-          advertisedPrice,
-          heroPhoto: hasMissingPhotos ? '' : photoUrl,
-          photos: hasMissingPhotos ? [] : [photoUrl, photoUrl],
-          isLiveOnWebsite: !hasMissingPhotos && status !== 'In Recon' && status !== 'Wholesale',
-          listingUrl: `${rooftop.websiteUrl}/used-cars/view/${stockNumber}`,
-          listingDescription: `Magnificent ${modelDef.make} ${modelDef.model} presented in pristine condition. Full Booran service history.`
-        });
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
       }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
+  /**
+   * Determine the category based on DMS status and CSV type.
+   */
+  private inferCategory(status: string, csvType: 'new' | 'used'): 'New' | 'Used' | 'Demo' | 'Loaner' {
+    const upperStatus = status.toUpperCase();
+    if (upperStatus === 'DEMO') return 'Demo';
+    if (upperStatus === 'LOANER' || upperStatus === 'IN SERVICE' || upperStatus === 'DRIVE CARS') return 'Loaner';
+    if (csvType === 'new') return 'New';
+    return 'Used';
+  }
+
+  /**
+   * Parse all 8 CSV files and produce a unified array of NormalizedPentanaRecord.
+   */
+  parseAllCsvFiles(): { pentanaRecords: NormalizedPentanaRecord[]; websiteRecords: RawWebsiteRecord[] } {
+    const pentanaRecords: NormalizedPentanaRecord[] = [];
+    const websiteRecords: RawWebsiteRecord[] = [];
+    let photoIndex = 0;
+
+    // Find CSV directory (try project root first, then relative)
+    const csvDir = path.resolve(__dirname, '..', '..', '..', '..');
+
+    for (const mapping of CSV_FILE_MANIFEST) {
+      const filePath = path.join(csvDir, mapping.filename);
+
+      if (!fs.existsSync(filePath)) {
+        this.logger.warn(`CSV file not found: ${filePath}. Skipping.`);
+        continue;
+      }
+
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const lines = content.split('\n').filter(l => l.trim().length > 0);
+
+      if (lines.length < 2) {
+        this.logger.warn(`CSV file empty: ${mapping.filename}`);
+        continue;
+      }
+
+      // Skip header row
+      for (let i = 1; i < lines.length; i++) {
+        const fields = this.parseCsvLine(lines[i]);
+
+        try {
+          let record: NormalizedPentanaRecord;
+
+          if (mapping.type === 'new') {
+            // New CSV: stock#,carline,description,fa,colour,loc,dest loc,list price,age,age,deal,status,open ro/po
+            const stockNumber = (fields[0] || '').replace(/\*O$/, '').trim(); // Remove *O suffix from on-order
+            const carline = fields[1] || '';
+            const description = fields[2] || '';
+            const colour = fields[4] || '';
+            const loc = fields[5] || '';
+            const destLoc = fields[6] || '';
+            const listPrice = parseFloat(fields[7]) || 0;
+            const daysInStock = parseInt(fields[9]) || 0;
+            const deal = fields[10] || '';
+            const status = fields[11] || 'IN-STOCK';
+            const openRoPo = fields[12] || 'N';
+
+            record = {
+              stockNumber,
+              carline,
+              description,
+              colour,
+              loc: loc || mapping.rooftopId, // Fallback to rooftop
+              destLoc,
+              listPrice,
+              daysInStock: Math.max(0, daysInStock),
+              deal,
+              status,
+              openRoPo: openRoPo === 'Y',
+              category: this.inferCategory(status, 'new'),
+              make: mapping.franchise,
+            };
+          } else {
+            // Used CSV: stock no,age,year,carline,description,reg no,odometer,colour,list price,loc,dest loc,status,open ro/po
+            const stockNumber = (fields[0] || '').trim();
+            const age = parseInt(fields[1]) || 0;
+            const year = parseInt(fields[2]) || 0;
+            const carline = fields[3] || '';
+            const description = fields[4] || '';
+            const rego = fields[5] || '';
+            const odometer = parseInt(fields[6]) || 0;
+            const colour = fields[7] || '';
+            const listPrice = parseFloat(fields[8]) || 0;
+            const loc = fields[9] || '';
+            const destLoc = fields[10] || '';
+            const status = fields[11] || 'IN-STOCK';
+            const openRoPo = fields[12] || 'N';
+
+            record = {
+              stockNumber,
+              carline,
+              description,
+              colour,
+              loc: loc || mapping.rooftopId,
+              destLoc,
+              listPrice,
+              daysInStock: Math.max(0, age),
+              deal: '',
+              status,
+              openRoPo: openRoPo === 'Y',
+              year: year > 100 ? year : 2000 + year, // Convert 2-digit year
+              rego,
+              odometer,
+              category: this.inferCategory(status, 'used'),
+              make: mapping.franchise,
+            };
+          }
+
+          if (!record.stockNumber) continue;
+
+          pentanaRecords.push(record);
+
+          // Generate a mock website record for units that should be online
+          const shouldBeOnline = !['ON-ORDER', 'IN-TRANSIT', 'SOLD', 'DLR TRADE', 'WHOLESALE', 'RECO', 'CHANGING'].includes(record.status);
+          const hasMissingPhotos = (photoIndex % 9 === 0);
+          const photoUrl = SAMPLE_PHOTOS[photoIndex % SAMPLE_PHOTOS.length];
+          photoIndex++;
+
+          websiteRecords.push({
+            stockNumber: record.stockNumber,
+            advertisedPrice: record.listPrice > 0 ? record.listPrice * 1.1 : null, // Mark-up for retail
+            heroPhoto: hasMissingPhotos ? '' : photoUrl,
+            photos: hasMissingPhotos ? [] : [photoUrl, photoUrl],
+            isLiveOnWebsite: shouldBeOnline && !hasMissingPhotos && record.listPrice > 0,
+            listingUrl: `https://www.booran.com.au/vehicles/${record.stockNumber}`,
+            listingDescription: `${record.carline} - ${record.description}. Booran Motor Group.`,
+          });
+        } catch (err) {
+          this.logger.warn(`Error parsing CSV row ${i} in ${mapping.filename}: ${err}`);
+        }
+      }
+
+      this.logger.log(`Parsed ${mapping.filename}: ${lines.length - 1} records (${mapping.type}, ${mapping.franchise})`);
     }
 
     return { pentanaRecords, websiteRecords };
   }
 
+  // ============ FEED RECONCILIATION ============
+
   async processFeeds(
-    pentanaRecords: RawPentanaRecord[],
+    pentanaRecords: NormalizedPentanaRecord[],
     websiteRecords: RawWebsiteRecord[],
     feedType: string = 'MANUAL_TRIGGER',
     scheduledWindow: string = 'Immediate Ingest'
@@ -166,9 +260,10 @@ export class ReconciliationService {
       }
     }
 
+    // Website data joined on stockNumber
     const websiteMap = new Map<string, RawWebsiteRecord>();
     for (const w of websiteRecords) {
-      websiteMap.set(w.vin, w);
+      websiteMap.set(w.stockNumber, w);
     }
 
     let reconciledCount = 0;
@@ -179,68 +274,106 @@ export class ReconciliationService {
     // Clear old action items for fresh calculation
     await this.actionItemModel.deleteMany({});
 
-    for (const pentana of pentanaRecords) {
-      const rooftop = branchMap.get(pentana.branchCode) || rooftops[0];
+    // Count model occurrences for sister-unit calculation
+    const modelCounts = new Map<string, number>();
+    for (const p of pentanaRecords) {
+      const key = p.carline;
+      modelCounts.set(key, (modelCounts.get(key) || 0) + 1);
+    }
 
-      if (!rooftop) {
-        quarantinedCount++;
-        continue;
+    for (const pentana of pentanaRecords) {
+      // Resolve rooftop from loc code
+      let rooftop = branchMap.get(pentana.loc);
+
+      // If loc is an in-transit code, try to find which rooftop this file belongs to
+      if (!rooftop && IN_TRANSIT_LOC_CODES.includes(pentana.loc)) {
+        // Find from the CSV manifest by matching the stockNumber pattern
+        // Fall back to first rooftop that matches the make
+        rooftop = rooftops.find(r => r.franchise === pentana.make);
       }
 
-      // Website match
-      const web = websiteMap.get(pentana.vin);
-      const totalStockCost = pentana.vehicleCost + pentana.postedRecon + pentana.extras;
-      const advertisedPrice = web ? web.advertisedPrice : null;
+      if (!rooftop) {
+        // Last resort: try to find any rooftop matching the franchise
+        rooftop = rooftops.find(r => r.franchise === pentana.make);
+        if (!rooftop) {
+          quarantinedCount++;
+          this.logger.debug(`Quarantined: ${pentana.stockNumber} - unknown loc '${pentana.loc}'`);
+          continue;
+        }
+      }
+
+      // Website match on stockNumber
+      const web = websiteMap.get(pentana.stockNumber);
+      const vehicleCost = pentana.listPrice;
+      const totalStockCost = vehicleCost; // No separate recon/extras in CSV
+      const advertisedPrice = web?.advertisedPrice ?? null;
       const hasPhotos = web ? (web.photos && web.photos.length > 0) : false;
 
-      // Transfer opportunity candidate: check if sister rooftop in cluster could take this model
+      // Infer year for new vehicles from description if not present
+      let year = pentana.year || 2026;
+      if (!pentana.year) {
+        // Try to extract year from description (e.g., "MY24", "MY25", "MY26")
+        const myMatch = pentana.description.match(/MY(\d{2})/);
+        if (myMatch) {
+          year = 2000 + parseInt(myMatch[1]);
+        }
+      }
+
+      // Map DMS status to a normalized dateInStock
+      const now = new Date();
+      const dateInStock = new Date(now.getTime() - pentana.daysInStock * 24 * 60 * 60 * 1000);
+
+      // Transfer opportunity: check if sister rooftop in cluster could take this model
       let transferCandidate = '';
-      if (pentana.category === 'Used') {
+      if (pentana.category === 'Used' || pentana.category === 'Loaner') {
         const otherRooftopInCluster = rooftops.find(
-          r => r.clusterId === rooftop.clusterId && r.rooftopId !== rooftop.rooftopId
+          r => r.clusterId === rooftop!.clusterId && r.rooftopId !== rooftop!.rooftopId
         );
         if (otherRooftopInCluster) {
           transferCandidate = otherRooftopInCluster.name;
         }
       }
 
+      // Map CSV status to rules-engine compatible status
+      const rulesStatus = this.mapStatusForRules(pentana.status);
+
       // Run Rules Engine
       const metrics = this.rulesService.calculateMetrics(
-        new Date(pentana.dateInStock),
-        pentana.status,
+        dateInStock,
+        rulesStatus,
         totalStockCost,
         advertisedPrice,
         hasPhotos,
         rooftop.dailyHoldingCostRate,
-        pentana.expectedReadyDate ? new Date(pentana.expectedReadyDate) : null,
-        pentana.category,
+        null, // expectedReadyDate
+        pentana.category === 'Loaner' ? 'Used' : pentana.category, // Rules engine uses New/Used/Demo
         transferCandidate
       );
 
       const vehicleDoc = {
-        vin: pentana.vin,
         stockNumber: pentana.stockNumber,
         rooftopId: rooftop.rooftopId,
         rooftopName: rooftop.name,
-        branchCode: pentana.branchCode,
+        branchCode: pentana.loc,
         clusterId: rooftop.clusterId,
         franchise: rooftop.franchise,
         rego: pentana.rego || '',
-        year: pentana.year,
+        year,
         make: pentana.make,
-        model: pentana.model,
-        variant: pentana.variant || '',
-        body: pentana.body,
+        model: pentana.carline,
+        variant: '',
+        description: pentana.description,
+        body: '',
         colour: pentana.colour,
-        fuel: pentana.fuel,
-        transmission: pentana.transmission,
-        odometer: pentana.odometer,
+        fuel: '',
+        transmission: 'Automatic',
+        odometer: pentana.odometer || 0,
         category: pentana.category,
-        vehicleCost: pentana.vehicleCost,
-        postedRecon: pentana.postedRecon,
-        extras: pentana.extras,
+        vehicleCost,
+        postedRecon: 0,
+        extras: 0,
         totalStockCost,
-        floorplanExposure: pentana.floorplanExposure,
+        floorplanExposure: Math.round(vehicleCost * 0.95),
         gstInclusive: true,
         advertisedPrice,
         heroPhoto: web?.heroPhoto || '',
@@ -249,9 +382,12 @@ export class ReconciliationService {
         listingUrl: web?.listingUrl || '',
         listingDescription: web?.listingDescription || '',
         status: pentana.status,
-        dateInStock: new Date(pentana.dateInStock),
-        expectedReadyDate: pentana.expectedReadyDate ? new Date(pentana.expectedReadyDate) : null,
-        salesperson: pentana.salesperson || '',
+        dateInStock,
+        expectedReadyDate: null,
+        salesperson: '',
+        hasOpenRoPo: pentana.openRoPo,
+        dealNumber: pentana.deal || '',
+        destLoc: pentana.destLoc || '',
         daysInStock: metrics.daysInStock,
         agingBucket: metrics.agingBucket,
         frontlineReady: metrics.frontlineReady,
@@ -261,7 +397,7 @@ export class ReconciliationService {
         recommendedAction: metrics.recommendedAction,
         actionReason: metrics.actionReason,
         recommendedTransferTarget: metrics.recommendedTransferTarget,
-        sisterUnitsInGroup: 2,
+        sisterUnitsInGroup: (modelCounts.get(pentana.carline) || 1) - 1,
         pentanaSource: rooftop.pentanaSourceSystem,
         isPriceReviewRequired: metrics.isPriceReviewRequired,
       };
@@ -293,9 +429,9 @@ export class ReconciliationService {
 
         actionsToCreate.push({
           actionType: metrics.recommendedAction,
-          vin: pentana.vin,
+          vin: pentana.stockNumber, // Use stockNumber as identifier
           stockNumber: pentana.stockNumber,
-          vehicleTitle: `${pentana.year} ${pentana.make} ${pentana.model} ${pentana.variant}`,
+          vehicleTitle: `${year} ${pentana.make} ${pentana.carline}`,
           rooftopId: rooftop.rooftopId,
           rooftopName: rooftop.name,
           targetRooftopName: metrics.recommendedTransferTarget,
@@ -307,10 +443,10 @@ export class ReconciliationService {
       }
     }
 
-    // Upsert into vehicles collection
+    // Upsert into vehicles collection using stockNumber as unique key
     for (const v of vehiclesToUpsert) {
       await this.vehicleModel.findOneAndUpdate(
-        { vin: v.vin },
+        { stockNumber: v.stockNumber },
         { $set: v },
         { upsert: true, new: true }
       );
@@ -321,6 +457,12 @@ export class ReconciliationService {
     }
 
     const durationMs = Date.now() - startTime;
+
+    // Calculate deltas for the feed log
+    const soldCount = pentanaRecords.filter(r => r.status === 'SOLD').length;
+    const dealPendCount = pentanaRecords.filter(r => r.status === 'DEAL PEND').length;
+    const onOrderCount = pentanaRecords.filter(r => r.status === 'ON-ORDER').length;
+
     const feedLog = await this.feedLogModel.create({
       feedType,
       scheduledWindow,
@@ -329,14 +471,37 @@ export class ReconciliationService {
       totalWebsiteRows: websiteRecords.length,
       reconciledCount,
       quarantinedCount,
-      newArrivalsCount: 4,
-      soldExitsCount: 3,
-      priceChangesCount: 5,
+      newArrivalsCount: onOrderCount,
+      soldExitsCount: soldCount,
+      priceChangesCount: dealPendCount,
       durationMs,
-      notes: `Reconciled ${reconciledCount} units across ${rooftops.length} Booran rooftops. Generated ${actionsToCreate.length} deterministic action items.`
+      notes: `Reconciled ${reconciledCount} units across ${SEED_ROOFTOPS.length} Booran rooftops. Generated ${actionsToCreate.length} deterministic action items. Quarantined: ${quarantinedCount}.`
     });
 
-    this.logger.log(`Feed reconciliation completed in ${durationMs}ms: ${reconciledCount} active units.`);
+    this.logger.log(`Feed reconciliation completed in ${durationMs}ms: ${reconciledCount} active units, ${actionsToCreate.length} actions, ${quarantinedCount} quarantined.`);
     return feedLog;
+  }
+
+  /**
+   * Map real Pentana DMS statuses to rules-engine compatible statuses.
+   */
+  private mapStatusForRules(status: string): string {
+    switch (status) {
+      case 'IN-STOCK': return 'Available';
+      case 'DEAL PEND': return 'Reserved';
+      case 'IN SERVICE':
+      case 'RECO': return 'In Recon';
+      case 'WHOLESALE': return 'Wholesale';
+      case 'SOLD': return 'Sold';
+      case 'DEMO':
+      case 'LOANER':
+      case 'DRIVE CARS': return 'Demo';
+      case 'DLR TRADE': return 'Wholesale';
+      case 'IN-TRANSIT':
+      case 'ON-ORDER': return 'Available';
+      case 'CHANGING':
+      case 'RENTAL': return 'Demo';
+      default: return 'Available';
+    }
   }
 }

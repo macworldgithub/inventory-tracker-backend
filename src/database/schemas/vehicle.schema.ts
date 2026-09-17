@@ -6,10 +6,10 @@ export type VehicleDocument = Vehicle & Document;
 @Schema({ timestamps: true })
 export class Vehicle {
   // Natural Keys
-  @Prop({ required: true, unique: true, index: true })
-  vin: string;
+  @Prop({ required: false, index: true, sparse: true })
+  vin?: string;
 
-  @Prop({ required: true, index: true })
+  @Prop({ required: true, unique: true, index: true })
   stockNumber: string;
 
   @Prop({ required: true, index: true })
@@ -43,13 +43,13 @@ export class Vehicle {
   @Prop({ default: '' })
   variant: string;
 
-  @Prop({ default: 'SUV' })
+  @Prop({ default: '' })
   body: string;
 
   @Prop({ default: '' })
   colour: string;
 
-  @Prop({ default: 'Petrol' })
+  @Prop({ default: '' })
   fuel: string;
 
   @Prop({ default: 'Automatic' })
@@ -58,8 +58,8 @@ export class Vehicle {
   @Prop({ default: 0 })
   odometer: number;
 
-  @Prop({ required: true, enum: ['New', 'Used', 'Demo'], index: true })
-  category: 'New' | 'Used' | 'Demo';
+  @Prop({ required: true, enum: ['New', 'Used', 'Demo', 'Loaner'], index: true })
+  category: 'New' | 'Used' | 'Demo' | 'Loaner';
 
   // Pentana Commercial Data (What it owes - System of Record)
   @Prop({ required: true })
@@ -99,14 +99,24 @@ export class Vehicle {
   @Prop({ default: '' })
   listingDescription: string;
 
+  // Pentana CSV Description field (full model description from DMS)
+  @Prop({ default: '' })
+  description: string;
+
   // Status & Dates
   @Prop({ 
     required: true, 
-    enum: ['Available', 'Reserved', 'In Recon', 'Wholesale', 'Sold', 'Demo'],
-    default: 'Available',
+    enum: [
+      'IN-STOCK', 'DEMO', 'DEAL PEND', 'DLR TRADE', 'IN-TRANSIT',
+      'ON-ORDER', 'LOANER', 'SOLD', 'WHOLESALE', 'IN SERVICE',
+      'RECO', 'RENTAL', 'CHANGING', 'DRIVE CARS',
+      // Legacy compatibility
+      'Available', 'Reserved', 'In Recon'
+    ],
+    default: 'IN-STOCK',
     index: true 
   })
-  status: 'Available' | 'Reserved' | 'In Recon' | 'Wholesale' | 'Sold' | 'Demo';
+  status: string;
 
   @Prop({ required: true })
   dateInStock: Date;
@@ -119,6 +129,15 @@ export class Vehicle {
 
   @Prop({ default: '' })
   salesperson: string;
+
+  @Prop({ default: false })
+  hasOpenRoPo: boolean; // Open Repair Order / Purchase Order
+
+  @Prop({ default: '' })
+  dealNumber: string; // Deal number if status is DEAL PEND or SOLD
+
+  @Prop({ default: '' })
+  destLoc: string; // Destination location (if transferring)
 
   // BI Derived Metrics
   @Prop({ required: true, index: true })

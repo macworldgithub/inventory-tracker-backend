@@ -5,7 +5,7 @@ export type FeedLogDocument = FeedLog & Document;
 
 @Schema({ timestamps: true })
 export class FeedLog {
-  @Prop({ required: true, enum: ['PENTANA_0600', 'PENTANA_1400', 'WEBSITE_SYNC', 'MANUAL_TRIGGER'] })
+  @Prop({ required: true, enum: ['PENTANA_0600', 'PENTANA_1400', 'WEBSITE_SYNC', 'MANUAL_TRIGGER', 'CSV_INITIAL_LOAD'] })
   feedType: string;
 
   @Prop({ required: true })

@@ -1,0 +1,129 @@
+
+> booran-good-showroom-backend@1.0.0 start:dev
+> ts-node-dev --respawn --transpile-only src/main.ts
+
+[INFO] 03:07:07 ts-node-dev ver. 2.0.0 (using ts-node ver. 10.9.2, typescript ver. 5.9.3)
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:08 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:08 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +14ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:08 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:08 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:08 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:08 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseCoreModule dependencies initialized[39m[38;5;3m +1349ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +9ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mInventoryModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mInventoryController {/api/inventory}:[39m[38;5;3m +18ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/status, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/trigger-feed, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/rooftops, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/group, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/dp/:clusterId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/gm/:rooftopId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/workbench, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:09 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/unit/:vin, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mDatabase empty. Initialising Booran Motor Group rooftops and ingesting CSV data...[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mSeeded 4 Booran rooftops[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mParsed booran_berwick_new_hyundai.csv: 176 records (new, Hyundai)[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mParsed booran_berwick_used_hyundai.csv: 35 records (used, Hyundai)[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mParsed booran_caranbourne_hyundai_new.csv: 218 records (new, Hyundai)[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mParsed booran_carabourne_hyundai_used.csv: 52 records (used, Hyundai)[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mParsed booran_southmoran_new_hyundai.csv: 197 records (new, Hyundai)[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mParsed booran_southmoran_used_hyundai.csv: 25 records (used, Hyundai)[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mParsed booran_chatelnham_new_kia.csv: 315 records (new, Kia)[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mParsed booran_chatlnham_used_kia.csv: 102 records (used, Kia)[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mParsed 1120 Pentana records from 8 CSV files[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:07:10 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mStarting feed reconciliation: 1120 DMS records, 1120 Website records[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:09:40 AM [32m    LOG[39m [38;5;3m[ReconciliationService] [39m[32mFeed reconciliation completed in 149854ms: 1120 active units, 818 actions, 0 quarantined.[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:09:40 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +2ms[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:09:40 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m================================================================[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:09:40 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚗 Good Showroom Live Inventory Tracker API is live on port 3001[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:09:40 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m   Swagger Documentation URL: http://localhost:3001/api/docs[39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:09:40 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m   Booran Motor Group Backend [NestJS + MongoDB (Mongoose)][39m
+[32m[Nest] 23366  - [39m09/17/2026, 3:09:40 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m================================================================[39m
+[INFO] 03:34:41 Restarting: /Users/mac/Desktop/inventory-tracker/inventory-tracker-backend/src/data/seed-data.ts has been modified
+Compilation error in /Users/mac/Desktop/inventory-tracker/inventory-tracker-backend/src/data/seed-data.ts
+[ERROR] 03:34:43 ⨯ Unable to compile TypeScript:
+src/data/seed-data.ts(165,1): error TS1005: ']' expected.
+
+[INFO] 03:35:00 Restarting: /Users/mac/Desktop/inventory-tracker/inventory-tracker-backend/src/data/seed-data.ts has been modified
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:02 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:02 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +41ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:02 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:02 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:02 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:02 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseCoreModule dependencies initialized[39m[38;5;3m +1081ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +11ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mInventoryModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mInventoryController {/api/inventory}:[39m[38;5;3m +23ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/status, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/trigger-feed, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/rooftops, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/group, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/dp/:clusterId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/gm/:rooftopId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/workbench, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/unit/:vin, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +432ms[39m
+[31m[Nest] 25317  - [39m09/17/2026, 3:35:03 AM [31m  ERROR[39m [38;5;3m[NestApplication] [39m[31mError: listen EADDRINUSE: address already in use :::3001[39m[38;5;3m +2ms[39m
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1939:16)
+    at listenInCluster (node:net:1996:12)
+    at Server.listen (node:net:2101:7)
+    at ExpressAdapter.listen (/Users/mac/Desktop/inventory-tracker/inventory-tracker-backend/node_modules/@nestjs/platform-express/adapters/express-adapter.js:95:32)
+    at /Users/mac/Desktop/inventory-tracker/inventory-tracker-backend/node_modules/@nestjs/core/nest-application.js:183:30
+    at new Promise (<anonymous>)
+    at NestApplication.listen (/Users/mac/Desktop/inventory-tracker/inventory-tracker-backend/node_modules/@nestjs/core/nest-application.js:173:16)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at bootstrap (/Users/mac/Desktop/inventory-tracker/inventory-tracker-backend/src/main.ts:38:3)
+[ERROR] 03:35:03 Error: listen EADDRINUSE: address already in use :::3001
+[INFO] 03:37:48 Restarting: /Users/mac/Desktop/inventory-tracker/inventory-tracker-backend/src/modules/ingest/reconciliation.service.ts has been modified
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:50 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:50 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +29ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:50 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:50 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:50 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:50 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseCoreModule dependencies initialized[39m[38;5;3m +1974ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +10ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mInventoryModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mInventoryController {/api/inventory}:[39m[38;5;3m +19ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/status, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/trigger-feed, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/rooftops, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/group, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/dp/:clusterId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/gm/:rooftopId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/workbench, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/unit/:vin, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +407ms[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m================================================================[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚗 Good Showroom Live Inventory Tracker API is live on port 3001[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m   Swagger Documentation URL: http://localhost:3001/api/docs[39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m   Booran Motor Group Backend [NestJS + MongoDB (Mongoose)][39m
+[32m[Nest] 25348  - [39m09/17/2026, 3:37:52 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m================================================================[39m
+[INFO] 03:55:00 Restarting: /Users/mac/Desktop/inventory-tracker/inventory-tracker-backend/src/modules/ingest/reconciliation.service.ts has been modified
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:01 AM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:01 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +17ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:01 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:01 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:01 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:01 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseCoreModule dependencies initialized[39m[38;5;3m +1240ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMongooseModule dependencies initialized[39m[38;5;3m +10ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mInventoryModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mInventoryController {/api/inventory}:[39m[38;5;3m +19ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/status, GET} route[39m[38;5;3m +3ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/trigger-feed, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/rooftops, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/group, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/dp/:clusterId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/gm/:rooftopId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/workbench, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:02 AM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/inventory/unit/:vin, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:03 AM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +363ms[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:03 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m================================================================[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:03 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m🚗 Good Showroom Live Inventory Tracker API is live on port 3001[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:03 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m   Swagger Documentation URL: http://localhost:3001/api/docs[39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:03 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m   Booran Motor Group Backend [NestJS + MongoDB (Mongoose)][39m
+[32m[Nest] 25560  - [39m09/17/2026, 3:55:03 AM [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32m================================================================[39m
