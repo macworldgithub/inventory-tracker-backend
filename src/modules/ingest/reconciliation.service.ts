@@ -10,7 +10,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {
   SEED_ROOFTOPS,
-  // SAMPLE_PHOTOS,
   NormalizedPentanaRecord,
   RawWebsiteRecord,
   IN_TRANSIT_LOC_CODES,
@@ -115,10 +114,22 @@ export class ReconciliationService {
   parseAllCsvFiles(): { pentanaRecords: NormalizedPentanaRecord[]; websiteRecords: RawWebsiteRecord[] } {
     const pentanaRecords: NormalizedPentanaRecord[] = [];
     const websiteRecords: RawWebsiteRecord[] = [];
-    let photoIndex = 0;
 
-    // Find CSV directory (try project root first, then relative)
-    const csvDir = path.resolve(__dirname, '..', '..', '..', '..');
+    // Find CSV directory (try project root, process cwd, or relative paths)
+    const possibleDirs = [
+      path.resolve(__dirname, '..', '..', '..', '..'),
+      process.cwd(),
+      path.resolve(process.cwd(), '..'),
+      path.resolve(__dirname, '..', '..', '..'),
+    ];
+
+    let csvDir = possibleDirs[0];
+    for (const d of possibleDirs) {
+      if (fs.existsSync(path.join(d, CSV_FILE_MANIFEST[0].filename))) {
+        csvDir = d;
+        break;
+      }
+    }
 
     for (const mapping of CSV_FILE_MANIFEST) {
       const filePath = path.join(csvDir, mapping.filename);
@@ -212,18 +223,15 @@ export class ReconciliationService {
 
           pentanaRecords.push(record);
 
-          // Generate a mock website record for units that should be online
+          // Generate website record for units that should be online
           const shouldBeOnline = !['ON-ORDER', 'IN-TRANSIT', 'SOLD', 'DLR TRADE', 'WHOLESALE', 'RECO', 'CHANGING'].includes(record.status);
-          const hasMissingPhotos = (photoIndex % 9 === 0);
-          const photoUrl = SAMPLE_PHOTOS[photoIndex % SAMPLE_PHOTOS.length];
-          photoIndex++;
 
           websiteRecords.push({
             stockNumber: record.stockNumber,
             advertisedPrice: record.listPrice > 0 ? record.listPrice * 1.1 : null, // Mark-up for retail
-            heroPhoto: hasMissingPhotos ? '' : photoUrl,
-            photos: hasMissingPhotos ? [] : [photoUrl, photoUrl],
-            isLiveOnWebsite: shouldBeOnline && !hasMissingPhotos && record.listPrice > 0,
+            heroPhoto: '',
+            photos: [],
+            isLiveOnWebsite: shouldBeOnline && record.listPrice > 0,
             listingUrl: `https://www.booran.com.au/vehicles/${record.stockNumber}`,
             listingDescription: `${record.carline} - ${record.description}. Booran Motor Group.`,
           });
