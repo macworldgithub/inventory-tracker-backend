@@ -6,13 +6,13 @@ export type RooftopDocument = Rooftop & Document;
 @Schema({ timestamps: true })
 export class Rooftop {
   @Prop({ required: true, unique: true })
-  rooftopId: string; // e.g. "booran-hyundai-dandenong"
+  rooftopId: string; // e.g. "booran-hyundai-berwick"
 
   @Prop({ required: true })
-  name: string; // e.g. "Booran Hyundai Dandenong"
+  name: string; // e.g. "Booran Hyundai Berwick"
 
   @Prop({ required: true })
-  location: string; // e.g. "Dandenong, VIC"
+  location: string; // e.g. "Berwick, VIC"
 
   @Prop({ required: true })
   franchise: string; // e.g. "Hyundai"

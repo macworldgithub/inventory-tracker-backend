@@ -63,7 +63,7 @@ export class InventoryController {
     summary: 'General Manager Rooftop Operations', 
     description: 'Single-lot pipeline tracker (Incoming -> Recon -> Frontline -> Reserved -> Sold), today\'s movement delta, and merchandising exception rail.' 
   })
-  @ApiParam({ name: 'rooftopId', example: 'booran-hyundai-dandenong', description: 'ID of the rooftop dealership' })
+  @ApiParam({ name: 'rooftopId', example: 'booran-hyundai-berwick', description: 'ID of the rooftop dealership' })
   @ApiResponse({ status: 200, description: 'General Manager lot operations dataset.' })
   async getGeneralManagerRooftop(@Param('rooftopId') rooftopId: string) {
     return this.inventoryService.getGeneralManagerRooftop(rooftopId);
