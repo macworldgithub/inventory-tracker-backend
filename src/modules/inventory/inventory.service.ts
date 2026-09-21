@@ -55,7 +55,49 @@ export class InventoryService {
   async getGroupOverview() {
     const vehicles = await this.vehicleModel.find({ status: { $nin: EXITED_STATUSES } }).lean();
     const rooftops = await this.rooftopModel.find().lean();
-    const actions = await this.actionItemModel.find({ status: 'open' }).limit(10).lean();
+    let actions = await this.actionItemModel.find({ status: 'open' }).limit(10).lean();
+
+    // Fallback: If actionItemModel has no records, dynamically derive high-priority actions from vehicles
+    if (actions.length === 0 && vehicles.length > 0) {
+      const actionVehicles = vehicles
+        .filter(v => v.recommendedAction && v.recommendedAction !== 'NONE' && v.recommendedAction !== 'HOLD')
+        .sort((a, b) => (b.daysInStock * b.totalStockCost) - (a.daysInStock * a.totalStockCost))
+        .slice(0, 15);
+
+      actions = actionVehicles.map(v => {
+        let priority: 'high' | 'medium' | 'low' = 'medium';
+        let impact = 'Capital and readiness optimization';
+
+        if (v.recommendedAction === 'WHOLESALE') {
+          priority = 'high';
+          impact = `Free up $${(v.totalStockCost || 0).toLocaleString()} capital`;
+        } else if (v.recommendedAction === 'PRICE') {
+          priority = 'high';
+          impact = `Restore $${Math.abs(v.potentialGross || 0).toLocaleString()} gross or trigger turn`;
+        } else if (v.recommendedAction === 'COMPLETE') {
+          priority = 'medium';
+          impact = 'Unlock online enquiries & frontline readiness';
+        } else if (v.recommendedAction === 'TRANSFER') {
+          priority = 'low';
+          impact = `Rebalance to ${v.recommendedTransferTarget || 'sister rooftop'}`;
+        }
+
+        return {
+          _id: v._id,
+          actionType: v.recommendedAction,
+          vin: v.stockNumber,
+          stockNumber: v.stockNumber,
+          vehicleTitle: `${v.year || 2024} ${v.make} ${v.model}`,
+          rooftopId: v.rooftopId,
+          rooftopName: v.rooftopName,
+          targetRooftopName: v.recommendedTransferTarget || '',
+          reason: v.actionReason || `${v.daysInStock} DIS aged stock`,
+          impactMetric: impact,
+          priority,
+          status: 'open',
+        } as any;
+      });
+    }
 
     const totalUnits = vehicles.length;
     const totalStockCost = vehicles.reduce((sum, v) => sum + (v.totalStockCost || 0), 0);
