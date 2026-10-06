@@ -9,7 +9,11 @@
     "build": "tsc",
     "start": "ts-node -r tsconfig-paths/register src/main.ts",
     "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
-    "start:prod": "node dist/main.js"
+    "start:prod": "node dist/main.js",
+    "ingest": "ts-node scripts/ingest.ts",
+    "analyze": "ts-node scripts/analyze.ts",
+    "report": "ts-node scripts/report.ts",
+    "seed-rooftops": "ts-node scripts/seed-rooftops.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.15",
