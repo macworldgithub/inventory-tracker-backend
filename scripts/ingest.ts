@@ -88,29 +88,32 @@ async function ingestCsv(filePath: string) {
         const age = parseInt(data['age'] || '0', 10);
         const odometer = parseInt(data['odometer'] || '0', 10);
         let year = parseInt(data['year'] || '0', 10);
-        if (year < 100) year += 2000;
+        if (year > 0 && year < 100) year += 2000;
         
         const dateInStock = new Date();
         dateInStock.setDate(dateInStock.getDate() - age);
 
+        const stockNumber = data['stock no'] || data['stock#'];
+        if (!stockNumber) return; // Skip if no stock number is found
+
         const vehicle = {
-          stockNumber: data['stock no'],
+          stockNumber,
           rooftopId: rooftopName.toLowerCase(),
           rooftopName,
           branchCode,
           clusterId: 'cluster-' + franchise.toLowerCase(),
           franchise,
-          rego: data['reg no'],
-          year,
+          rego: data['reg no'] || data['fa'] || '',
+          year: year || new Date().getFullYear(),
           make: franchise,
-          model: data['carline'],
-          colour: data['colour'],
+          model: data['carline'] || '',
+          colour: data['colour'] || '',
           odometer,
           category,
           vehicleCost: listPrice,
           totalStockCost: listPrice,
           advertisedPrice: listPrice > 0 ? listPrice : null,
-          description: data['description'],
+          description: data['description'] || '',
           status: data['status'] === 'WHOLESALE' ? 'WHOLESALE' : 'IN-STOCK',
           dateInStock,
           daysInStock: age,
