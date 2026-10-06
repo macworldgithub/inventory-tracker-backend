@@ -31,7 +31,7 @@ export class InventoryService {
     private actionItemModel: Model<ActionItemDocument>,
     @InjectModel(FeedLog.name) private feedLogModel: Model<FeedLogDocument>,
     private reconciliationService: ReconciliationService,
-  ) {}
+  ) { }
 
   async getRooftops(): Promise<any[]> {
     return this.rooftopModel.find().lean();
@@ -162,9 +162,9 @@ export class InventoryService {
       const avgDis =
         lotVehicles.length > 0
           ? Math.round(
-              lotVehicles.reduce((sum, v) => sum + v.daysInStock, 0) /
-                lotVehicles.length,
-            )
+            lotVehicles.reduce((sum, v) => sum + v.daysInStock, 0) /
+            lotVehicles.length,
+          )
           : 0;
 
       // Aging breakdown
@@ -201,10 +201,10 @@ export class InventoryService {
         frontlineReadyPercent:
           lotVehicles.length > 0
             ? Math.round(
-                (lotVehicles.filter((v) => v.frontlineReady).length /
-                  lotVehicles.length) *
-                  100,
-              )
+              (lotVehicles.filter((v) => v.frontlineReady).length /
+                lotVehicles.length) *
+              100,
+            )
             : 0,
         turnRate: 3.2,
         buckets: {
@@ -361,9 +361,9 @@ export class InventoryService {
       const avgDis =
         lotVehicles.length > 0
           ? Math.round(
-              lotVehicles.reduce((sum, v) => sum + v.daysInStock, 0) /
-                lotVehicles.length,
-            )
+            lotVehicles.reduce((sum, v) => sum + v.daysInStock, 0) /
+            lotVehicles.length,
+          )
           : 0;
 
       return {
@@ -441,9 +441,9 @@ export class InventoryService {
         avgDis:
           vehicles.length > 0
             ? Math.round(
-                vehicles.reduce((s, v) => s + v.daysInStock, 0) /
-                  vehicles.length,
-              )
+              vehicles.reduce((s, v) => s + v.daysInStock, 0) /
+              vehicles.length,
+            )
             : 0,
         potentialGross: vehicles.reduce((s, v) => s + v.potentialGross, 0),
         aged45Count: vehicles.filter((v) => v.daysInStock >= 45).length,
@@ -557,13 +557,13 @@ export class InventoryService {
         avgDis:
           vehicles.length > 0
             ? Math.round(
-                vehicles.reduce((s, v) => s + v.daysInStock, 0) /
-                  vehicles.length,
-              )
+              vehicles.reduce((s, v) => s + v.daysInStock, 0) /
+              vehicles.length,
+            )
             : 0,
         holdingCostToday: Math.round(
           vehicles.reduce((s, v) => s + v.totalStockCost, 0) *
-            (rooftop.dailyHoldingCostRate || 0.0003),
+          (rooftop.dailyHoldingCostRate || 0.0003),
         ),
       },
       pipeline,
@@ -614,7 +614,7 @@ export class InventoryService {
     if (query.agingBucket && query.agingBucket !== "all") {
       filter.agingBucket = query.agingBucket;
     }
-    if (query.category && query.category !== "all") {
+    if (query.category && query.category !== "All") {
       filter.category = query.category;
     }
     if (query.make && query.make !== "all") {
